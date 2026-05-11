@@ -156,10 +156,21 @@
     }
   }
 
-  function submitRequest() {
+  async function submitRequest() {
     const name = document.getElementById('req-name').value.trim();
     if (!name) { document.getElementById('req-name').focus(); return; }
-    document.getElementById('toast').classList.add('show');
-    setTimeout(() => document.getElementById('toast').classList.remove('show'), 4000);
-  }
+
+    const note = document.getElementById('req-note').value;
+    const items = [...selectedChips].join(', ');
+
+    const response = await fetch('https://formspree.io/f/xnjwlwqp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, items, note })
+    });
+
+    if (response.ok) {
+      document.getElementById('toast').classList.add('show');
+      setTimeout(() => document.getElementById('toast').classList.remove('show'), 4000);
+    }
 </script>
