@@ -1,0 +1,165 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  .portal { font-family: 'DM Sans', sans-serif; color: var(--color-text-primary); padding: 0; }
+  
+  .hero { text-align: center; padding: 2.5rem 1rem 2rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .hero-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+  .hero-title { font-family: 'DM Serif Display', serif; font-size: 2.2rem; line-height: 1.15; margin-bottom: 0.5rem; }
+  .hero-title em { font-style: italic; }
+  .hero-sub { font-size: 14px; color: var(--color-text-secondary); max-width: 340px; margin: 0 auto; line-height: 1.6; }
+  
+  .drop-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--color-background-success); color: var(--color-text-success); font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px; margin-top: 1rem; }
+  .drop-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-success); }
+  
+  .catalog { padding: 1.5rem 1rem; }
+  .section-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 1rem; }
+  
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  
+  .item-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
+  .item-card:hover { border-color: var(--color-border-secondary); }
+  .item-card.requested { border-color: #3B6D11; border-width: 1.5px; }
+  
+  .item-img { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; background: var(--color-background-secondary); }
+  
+  .item-body { padding: 0.75rem 1rem; }
+  .item-name { font-family: 'DM Serif Display', serif; font-size: 1rem; margin-bottom: 2px; }
+  .item-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 0.6rem; }
+  .item-tag { display: inline-block; font-size: 11px; background: var(--color-background-secondary); color: var(--color-text-secondary); padding: 2px 8px; border-radius: 20px; }
+  
+  .request-btn { width: 100%; margin-top: 0.75rem; padding: 7px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-primary); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.1s; }
+  .request-btn:hover { background: var(--color-background-secondary); }
+  .request-btn.done { background: var(--color-background-success); color: var(--color-text-success); border-color: transparent; }
+  
+  .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 0 1rem; }
+  
+  .request-form { padding: 1.5rem 1rem; }
+  .form-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; margin-bottom: 0.35rem; }
+  .form-hint { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.25rem; line-height: 1.5; }
+  
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 5px; }
+  .field input, .field textarea { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; }
+  .field textarea { min-height: 80px; resize: vertical; }
+  
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 5px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: 20px; font-size: 13px; cursor: pointer; background: transparent; color: var(--color-text-primary); font-family: 'DM Sans', sans-serif; transition: all 0.1s; }
+  .chip.selected { background: var(--color-background-success); color: var(--color-text-success); border-color: transparent; }
+  
+  .submit-btn { width: 100%; padding: 10px; background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 0.5rem; }
+  .submit-btn:hover { opacity: 0.85; }
+  
+  .toast { display: none; text-align: center; padding: 0.75rem; font-size: 13px; color: var(--color-text-success); background: var(--color-background-success); border-radius: var(--border-radius-md); margin-top: 1rem; }
+  .toast.show { display: block; }
+</style>
+
+<div class="portal">
+  <h2 class="sr-only">Baked goods ordering portal — browse the catalog and request items for the next drop</h2>
+
+  <div class="hero">
+    <p class="hero-eyebrow">Next drop — Saturday, May 17</p>
+    <h1 class="hero-title">Something <em>good</em><br>is coming.</h1>
+    <p class="hero-sub">Browse what's in the works and let us know what you'd love to see next time.</p>
+    <div class="drop-badge"><span class="drop-dot"></span> Taking requests now</div>
+  </div>
+
+  <div class="catalog">
+    <p class="section-label">This week's catalog</p>
+    <div class="grid" id="catalog-grid"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="request-form">
+    <p class="form-title">Put in a request</p>
+    <p class="form-hint">Don't see what you're craving? Let us know — popular requests shape the next drop.</p>
+
+    <div class="field">
+      <label>Your name</label>
+      <input type="text" placeholder="First name is fine" id="req-name" />
+    </div>
+
+    <div class="field">
+      <label>What are you craving?</label>
+      <div class="chip-row" id="chips"></div>
+    </div>
+
+    <div class="field">
+      <label>Anything else?</label>
+      <textarea placeholder="Special requests, dietary notes, or a totally new idea..." id="req-note"></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="submitRequest()">Send request</button>
+    <div class="toast" id="toast">Request sent! We'll see you at the drop. 🍰</div>
+  </div>
+</div>
+
+<script>
+  const items = [
+    { emoji: '🧁', name: 'Brown Butter Cupcake', desc: 'Browned butter vanilla cake, cream cheese frosting', tag: 'fan favorite' },
+    { emoji: '🥐', name: 'Almond Croissant', desc: 'Twice-baked, frangipane filled, flaky', tag: 'weekend only' },
+    { emoji: '🍪', name: 'Tahini Chocolate Chip', desc: 'Nutty, chewy, deeply savory-sweet', tag: 'new this week' },
+    { emoji: '🍋', name: 'Lemon Olive Oil Cake', desc: 'Dense, bright, dusted with powdered sugar', tag: 'gluten-light' },
+    { emoji: '🎂', name: 'Cardamom Roll', desc: 'Scandinavian-style, less sweet than cinnamon', tag: 'limited' },
+    { emoji: '🍫', name: 'Fudge Brownie', desc: 'One-bowl, crinkle-top, serious chocolate', tag: 'classic' },
+  ];
+
+  const requests = ['Brown Butter Cupcake', 'Almond Croissant', 'Tahini Cookie', 'Lemon Cake', 'Cardamom Roll', 'Brownie', 'Cinnamon Roll', 'Banana Bread', 'Scones', 'Macarons'];
+  const requested = new Set();
+  const selectedChips = new Set();
+
+  const grid = document.getElementById('catalog-grid');
+  items.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.id = 'card-' + i;
+    card.innerHTML = `
+      <div class="item-img">${item.emoji}</div>
+      <div class="item-body">
+        <p class="item-name">${item.name}</p>
+        <p class="item-desc">${item.desc}</p>
+        <span class="item-tag">${item.tag}</span>
+        <button class="request-btn" id="btn-${i}" onclick="requestItem(${i}, '${item.name}')">
+          <i class="ti ti-plus" style="font-size:14px" aria-hidden="true"></i> Request this
+        </button>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  const chipsEl = document.getElementById('chips');
+  requests.forEach(r => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = r;
+    chip.onclick = () => {
+      if (selectedChips.has(r)) { selectedChips.delete(r); chip.classList.remove('selected'); }
+      else { selectedChips.add(r); chip.classList.add('selected'); }
+    };
+    chipsEl.appendChild(chip);
+  });
+
+  function requestItem(i, name) {
+    if (requested.has(i)) return;
+    requested.add(i);
+    const btn = document.getElementById('btn-' + i);
+    const card = document.getElementById('card-' + i);
+    btn.className = 'request-btn done';
+    btn.innerHTML = '<i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i> Requested';
+    card.classList.add('requested');
+    if (!selectedChips.has(name)) {
+      selectedChips.add(name);
+      document.querySelectorAll('.chip').forEach(c => { if (c.textContent === name) c.classList.add('selected'); });
+    }
+  }
+
+  function submitRequest() {
+    const name = document.getElementById('req-name').value.trim();
+    if (!name) { document.getElementById('req-name').focus(); return; }
+    document.getElementById('toast').classList.add('show');
+    setTimeout(() => document.getElementById('toast').classList.remove('show'), 4000);
+  }
+</script>
