@@ -21,6 +21,8 @@
 
     .drop-badge { display: inline-flex; align-items: center; gap: 6px; background: #eaf3de; color: #3b6d11; font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px; margin-top: 1rem; }
     .drop-dot { width: 6px; height: 6px; border-radius: 50%; background: #3b6d11; animation: pulse 2s infinite; }
+    .drop-badge.closed { background: #f2f2f2; color: #888; }
+    .drop-badge.closed .drop-dot { background: #aaa; animation: none; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
     .catalog { padding: 1.5rem 1rem; }
@@ -35,21 +37,25 @@
     .item-card.requested { border-color: #3b6d11; border-width: 1.5px; }
 
     .item-img { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; background: #f9f9f9; }
+    .item-img img { width: 100%; height: 100%; object-fit: cover; }
 
     .item-body { padding: 0.75rem 1rem; }
     .item-name { font-family: 'DM Serif Display', serif; font-size: 1rem; margin-bottom: 2px; }
     .item-desc { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 0.6rem; }
     .item-tag { display: inline-block; font-size: 11px; background: #f2f2f2; color: #888; padding: 2px 8px; border-radius: 20px; }
 
-    .request-btn { width: 100%; margin-top: 0.75rem; padding: 7px; border: 0.5px solid #ccc; border-radius: 8px; background: transparent; color: #111; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.1s; }
+    .request-btn { width: 100%; margin-top: 0.75rem; padding: 7px; border: 0.5px solid #ccc; border-radius: 8px; background: transparent; color: #111; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
     .request-btn:hover { background: #f2f2f2; }
-    .request-btn.done { background: #eaf3de; color: #3b6d11; border-color: transparent; }
+    .request-btn.done { background: #eaf3de; color: #3b6d11; border-color: transparent; cursor: default; }
 
     .divider { height: 0.5px; background: #e5e5e5; margin: 0 1rem; }
 
     .request-form { padding: 1.5rem 1rem; }
     .form-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; margin-bottom: 0.35rem; }
     .form-hint { font-size: 13px; color: #888; margin-bottom: 1.25rem; line-height: 1.5; }
+
+    .requests-closed { text-align: center; padding: 2rem 1rem; color: #888; font-size: 14px; }
+    .requests-closed strong { display: block; font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: #111; margin-bottom: 0.35rem; }
 
     .field { margin-bottom: 1rem; }
     .field label { display: block; font-size: 13px; color: #888; margin-bottom: 5px; }
@@ -61,23 +67,24 @@
     .chip { padding: 5px 12px; border: 0.5px solid #ccc; border-radius: 20px; font-size: 13px; cursor: pointer; background: transparent; color: #111; font-family: 'DM Sans', sans-serif; transition: all 0.1s; }
     .chip.selected { background: #eaf3de; color: #3b6d11; border-color: transparent; }
 
-    .submit-btn { width: 100%; padding: 10px; background: #111; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.15s; }
-    .submit-btn:hover { opacity: 0.85; }
-    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .toast { display: none; text-align: center; padding: 0.75rem; font-size: 13px; color: #3b6d11; background: #eaf3de; border-radius: 8px; margin-top: 1rem; }
-    .toast.show { display: block; }
-    .toast.error { color: #8b0000; background: #fdecea; }
+    .submit-btn { width: 100%; padding: 10px; background: #111; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 0.5rem; transition: all 0.3s; }
+    .submit-btn:hover:not(:disabled) { opacity: 0.85; }
+    .submit-btn:disabled { cursor: not-allowed; }
+    .submit-btn.success { background: #3b6d11; }
+    .submit-btn.error-state { background: #8b0000; }
   </style>
 </head>
 <body>
   <div class="portal">
 
     <div class="hero">
-      <p class="hero-eyebrow">Next drop — Saturday, May 17</p>
+      <p class="hero-eyebrow" id="drop-eyebrow">Next drop</p>
       <h1 class="hero-title">Something <em>good</em><br>is coming.</h1>
       <p class="hero-sub">Browse what's in the works and let us know what you'd love to see next time.</p>
-      <div class="drop-badge"><span class="drop-dot"></span> Taking requests now</div>
+      <div class="drop-badge" id="drop-badge">
+        <span class="drop-dot"></span>
+        <span id="badge-label">Taking requests now</span>
+      </div>
     </div>
 
     <div class="catalog">
@@ -88,33 +95,12 @@
 
     <div class="divider"></div>
 
-    <div class="request-form">
-      <p class="form-title">Put in a request</p>
-      <p class="form-hint">Don't see what you're craving? Let us know — popular requests shape the next drop.</p>
-
-      <div class="field">
-        <label>Your name</label>
-        <input type="text" placeholder="First name is fine" id="req-name" />
-      </div>
-
-      <div class="field">
-        <label>What are you craving?</label>
-        <div class="chip-row" id="chips"></div>
-      </div>
-
-      <div class="field">
-        <label>Anything else?</label>
-        <textarea placeholder="Special requests, dietary notes, or a totally new idea..." id="req-note"></textarea>
-      </div>
-
-      <button class="submit-btn" id="submit-btn" onclick="submitRequest()">Send request</button>
-      <div class="toast" id="toast"></div>
-    </div>
+    <div id="form-section"></div>
 
   </div>
 
   <script>
-    // ─── PASTE YOUR SUPABASE CREDENTIALS HERE ───────────────────────────
+    // ─── SUPABASE CREDENTIALS ────────────────────────────────────────────
     const SUPABASE_URL = 'https://dpyjnhgmmipuzaeeazhn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_OmKYXTwP296JbwO1ueT5XA_w_Kpb4mi';
     // ────────────────────────────────────────────────────────────────────
@@ -127,8 +113,31 @@
 
     const requested = new Set();
     const selectedChips = new Set();
+    let takingRequests = true;
 
-    // ── Load catalog from Supabase ───────────────────────────────────────
+    // ── Load settings ────────────────────────────────────────────────────
+    async function loadSettings() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1`, { headers });
+      const data = await res.json();
+      if (!data.length) return;
+      const s = data[0];
+
+      // Update drop label
+      if (s.drop_label) {
+        document.getElementById('drop-eyebrow').textContent = `Next drop — ${s.drop_label}`;
+      }
+
+      // Update badge + store taking_requests state
+      takingRequests = s.taking_requests;
+      const badge = document.getElementById('drop-badge');
+      const badgeLabel = document.getElementById('badge-label');
+      if (!takingRequests) {
+        badge.className = 'drop-badge closed';
+        badgeLabel.textContent = 'Requests closed';
+      }
+    }
+
+    // ── Load catalog ─────────────────────────────────────────────────────
     async function loadCatalog() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/catalog?active=eq.true&order=id.asc`, { headers });
       const items = await res.json();
@@ -138,12 +147,16 @@
       const chipsEl = document.getElementById('chips');
 
       items.forEach((item) => {
-        // Catalog card
         const card = document.createElement('div');
         card.className = 'item-card';
         card.id = 'card-' + item.id;
+
+        const imgContent = item.image_url
+          ? `<img src="${item.image_url}" alt="${item.name}" />`
+          : (item.emoji || '🍰');
+
         card.innerHTML = `
-          <div class="item-img">${item.emoji || '🍰'}</div>
+          <div class="item-img">${imgContent}</div>
           <div class="item-body">
             <p class="item-name">${item.name}</p>
             <p class="item-desc">${item.description || ''}</p>
@@ -154,7 +167,6 @@
           </div>`;
         grid.appendChild(card);
 
-        // Chip
         const chip = document.createElement('button');
         chip.className = 'chip';
         chip.textContent = item.name;
@@ -162,7 +174,7 @@
           if (selectedChips.has(item.name)) { selectedChips.delete(item.name); chip.classList.remove('selected'); }
           else { selectedChips.add(item.name); chip.classList.add('selected'); }
         };
-        chipsEl.appendChild(chip);
+        if (chipsEl) chipsEl.appendChild(chip);
       });
     }
 
@@ -180,15 +192,47 @@
       }
     }
 
-    // ── Submit request to Supabase ───────────────────────────────────────
+    // ── Render form or closed message ────────────────────────────────────
+    function renderFormSection() {
+      const section = document.getElementById('form-section');
+      if (!takingRequests) {
+        section.innerHTML = `
+          <div class="requests-closed">
+            <strong>Requests are closed for now.</strong>
+            Check back before the next drop!
+          </div>`;
+        return;
+      }
+
+      section.innerHTML = `
+        <div class="request-form">
+          <p class="form-title">Put in a request</p>
+          <p class="form-hint">Don't see what you're craving? Let us know — popular requests shape the next drop.</p>
+          <div class="field">
+            <label>Your name</label>
+            <input type="text" placeholder="First name is fine" id="req-name" />
+          </div>
+          <div class="field">
+            <label>What are you craving?</label>
+            <div class="chip-row" id="chips"></div>
+          </div>
+          <div class="field">
+            <label>Anything else?</label>
+            <textarea placeholder="Special requests, dietary notes, or a totally new idea..." id="req-note"></textarea>
+          </div>
+          <button class="submit-btn" id="submit-btn" onclick="submitRequest()">Send request</button>
+        </div>`;
+    }
+
+    // ── Submit ───────────────────────────────────────────────────────────
     async function submitRequest() {
       const name = document.getElementById('req-name').value.trim();
       if (!name) { document.getElementById('req-name').focus(); return; }
 
       const note = document.getElementById('req-note').value;
       const itemList = [...selectedChips].join(', ');
-
       const btn = document.getElementById('submit-btn');
+
       btn.disabled = true;
       btn.textContent = 'Sending...';
 
@@ -198,22 +242,28 @@
         body: JSON.stringify({ name, items: itemList, note })
       });
 
-      const toast = document.getElementById('toast');
       if (res.ok) {
-        toast.textContent = "Request sent! We'll see you at the drop. 🍰";
-        toast.className = 'toast show';
-        btn.textContent = 'Sent!';
+        btn.textContent = '✓ You\'re on the list';
+        btn.classList.add('success');
       } else {
-        toast.textContent = 'Something went wrong — try again in a moment.';
-        toast.className = 'toast error show';
+        btn.textContent = 'Something went wrong — try again';
+        btn.classList.add('error-state');
         btn.disabled = false;
-        btn.textContent = 'Send request';
+        setTimeout(() => {
+          btn.textContent = 'Send request';
+          btn.classList.remove('error-state');
+        }, 3000);
       }
-      setTimeout(() => { toast.className = 'toast'; }, 5000);
     }
 
     // ── Init ─────────────────────────────────────────────────────────────
-    loadCatalog();
+    async function init() {
+      await loadSettings();
+      renderFormSection();
+      await loadCatalog();
+    }
+
+    init();
   </script>
 </body>
 </html>
